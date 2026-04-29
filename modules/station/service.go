@@ -118,51 +118,40 @@ func (s *service) GetScheduleByStation(id int) (response []GetScheduleByStations
 		return nil, err
 	}
 
-	// response = make([]GetStationsResponse, len(stations.Data))
+	//
+	result := []GetScheduleByStationsResponse{}
 
-	response = make([]GetScheduleByStationsResponse, 2)
-	for i := 0; i < 2; i++ {
-		response[i] = GetScheduleByStationsResponse{
-			ID:               station.ID,
-			StationStartName: station.Name,
-			// Name: stationSchedule.Data[i].Object.Schedule.End,
-			// Time: stationSchedule.Data[i].Object.Schedule.WeekdaysEnd,
-		}
+	if len(stationSchedule.Data) == 0 {
+		return result, nil
+	}
 
-		if i == 0 {
-			response[i].StationEndName = stationSchedule.Data[0].Object.Schedule.End
-			response[i].Time = GetUpcomingSchedules(stationSchedule.Data[0].Object.Schedule.WeekdaysEnd, 5)
-		}
+	// prepare schedule directions
+	directions := []struct {
+		EndName string
+		Time    string
+	}{
+		{
+			EndName: stationSchedule.Data[0].Object.Schedule.End,
+			Time:    stationSchedule.Data[0].Object.Schedule.WeekdaysEnd,
+		},
+		{
+			EndName: stationSchedule.Data[0].Object.Schedule.Start,
+			Time:    stationSchedule.Data[0].Object.Schedule.WeekdaysStart,
+		},
+	}
 
-		if i == 1 {
-			response[i].StationEndName = stationSchedule.Data[0].Object.Schedule.Start
-			response[i].Time = GetUpcomingSchedules(stationSchedule.Data[0].Object.Schedule.WeekdaysStart, 5)
+	for _, dir := range directions {
+		if dir.EndName != "" {
+			result = append(result, GetScheduleByStationsResponse{
+				ID:               station.ID,
+				StationStartName: station.Name,
+				StationEndName:   dir.EndName,
+				Time:             GetUpcomingSchedules(dir.Time, 5), // 5 is the number of upcoming schedules to display
+			})
 		}
 	}
 
-	// for i, s := range stationSchedule.Data {
-	// 	response[i] = GetScheduleByStationsResponse{
-	// 		ID:   s.ID,
-	// 		Slug: s.Slug,
-	// 		// Name: s.Object.Schedule.End,
-	// 		// Time: s.Object.Schedule.WeekdaysEnd,
-	// 	}
-
-	// 	if s.Object.Schedule.End != "" && s.Object.Schedule.Start != "" {
-
-	// 	}
-	// 	if s.Object.Schedule.End != "" {
-	// 		response[i].Name = s.Object.Schedule.End
-	// 		response[i].Time = s.Object.Schedule.WeekdaysEnd
-	// 	}
-
-	// 	if s.Object.Schedule.Start != "" {
-	// 		response[i].Name = s.Object.Schedule.Start
-	// 		response[i].Time = s.Object.Schedule.WeekdaysStart
-	// 	}
-	// }
-
-	return response, nil
+	return result, nil
 }
 
 func FindStationByID(stations []GetStationsResponse, id int) (*GetStationsResponse, bool) {
@@ -177,7 +166,7 @@ func FindStationByID(stations []GetStationsResponse, id int) (*GetStationsRespon
 func ParsingSchedule(schedule string) string {
 	now := time.Now()
 
-	// ambil jam sekarang (HH:MM:SS aja, buang tanggal)
+	// only HH:MM:SS, no date
 	current := now.Format("15:04:05")
 
 	nowParsed, _ := time.Parse("15:04:05", current)
@@ -199,6 +188,10 @@ func ParsingSchedule(schedule string) string {
 }
 
 func GetUpcomingSchedules(schedule string, count int) string {
+	if schedule == "" {
+		return ""
+	}
+
 	times := strings.Split(schedule, "; ")
 
 	now := time.Now()
@@ -222,7 +215,7 @@ func GetUpcomingSchedules(schedule string, count int) string {
 		}
 	}
 
-	// kalau tidak ada jadwal lagi hari ini
+	// if no schedule is upcoming, return "No more schedule"
 	if len(result) == 0 {
 		return "No more schedule"
 	}

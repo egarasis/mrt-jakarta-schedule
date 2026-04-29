@@ -42,6 +42,6 @@ type GetStationsResponse struct {
 type GetScheduleByStationsResponse struct {
 	ID               int    `json:"id"`
 	StationStartName string `json:"stationStartName"`
-	StationEndName   string `json:"stationEndName"`
-	Time             string `json:"time"`
+	StationEndName   string `json:"stationEndName,omitempty"`
+	Time             string `json:"time,omitempty"`
 }

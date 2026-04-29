@@ -1,7 +1,7 @@
 package station
 
 type StationSchduleResponse struct {
-	Data []StationSchdule `json:"data"`
+	Data []StationSchdule `json:"data"` 
 	Meta Meta             `json:"meta"`
 }
 
