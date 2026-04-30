@@ -35,11 +35,13 @@ func (s *service) GetAllStation() (response []GetStationsResponse, err error) {
 	// do request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
@@ -59,6 +61,7 @@ func (s *service) GetAllStation() (response []GetStationsResponse, err error) {
 	}
 
 	defer resp.Body.Close()
+	log.Default().Printf("GetAllStation: %d stations found", len(response))
 
 	return response, nil
 }
@@ -67,11 +70,13 @@ func (s *service) GetScheduleByStation(id int) (response []GetScheduleByStations
 	var stationSchedule StationSchduleResponse
 	datas, err := s.GetAllStation()
 	if err != nil {
+		log.Fatal(err)	
 		return nil, err
 	}
 
 	station, ok := FindStationByID(datas, id)
 	if !ok {
+		log.Default().Printf("GetScheduleByStation: station with ID %d not found", id)
 		return nil, errors.New("station not found")
 	}
 
@@ -79,6 +84,7 @@ func (s *service) GetScheduleByStation(id int) (response []GetScheduleByStations
 
 	u, err := url.Parse(baseURL)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
@@ -104,11 +110,13 @@ func (s *service) GetScheduleByStation(id int) (response []GetScheduleByStations
 
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -122,6 +130,7 @@ func (s *service) GetScheduleByStation(id int) (response []GetScheduleByStations
 	result := []GetScheduleByStationsResponse{}
 
 	if len(stationSchedule.Data) == 0 {
+		log.Default().Printf("GetScheduleByStation: no schedule found for station with ID %d", id)
 		return result, nil
 	}
 
@@ -151,6 +160,7 @@ func (s *service) GetScheduleByStation(id int) (response []GetScheduleByStations
 		}
 	}
 
+	log.Default().Printf("GetScheduleByStation: schedule found for station with ID %d", id)	
 	return result, nil
 }
 
@@ -203,6 +213,7 @@ func GetUpcomingSchedules(schedule string, count int) string {
 	for _, t := range times {
 		parsedTime, err := time.Parse("15:04:05", t)
 		if err != nil {
+			log.Default().Printf("GetUpcomingSchedules: failed to parse time %s: %v", t, err)
 			continue
 		}
 
