@@ -199,6 +199,7 @@ func ParsingSchedule(schedule string) string {
 
 func GetUpcomingSchedules(schedule string, count int) string {
 	if schedule == "" {
+		log.Default().Printf("GetUpcomingSchedules: schedule is empty")
 		return ""
 	}
 
@@ -228,6 +229,7 @@ func GetUpcomingSchedules(schedule string, count int) string {
 
 	// if no schedule is upcoming, return "No more schedule"
 	if len(result) == 0 {
+		log.Default().Printf("GetUpcomingSchedules: no upcoming schedule found")
 		return "No more schedule"
 	}
 
